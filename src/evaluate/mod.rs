@@ -1,5 +1,8 @@
 use crate::expression::Expr;
 
+mod complex;
+pub use complex::*;
+
 /// Evaluates v + w where `v` and `w` are integers or fractions
 pub fn evaluate_sum(v: &Expr, w: &Expr) -> Expr {
     Expr::frac(

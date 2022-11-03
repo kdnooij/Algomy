@@ -7,6 +7,7 @@ pub enum ExprKind {
     Symbol(String),
     Integer(i64),
     Fraction(i64, i64),
+    Complex,
     Sum,
     Difference,
     Product,
@@ -89,6 +90,13 @@ impl Expr {
         Expr {
             kind: ExprKind::Factorial,
             operands: vec![expr],
+        }
+    }
+
+    pub fn complex(re: Expr, im: Expr) -> Expr {
+        Expr {
+            kind: ExprKind::Complex,
+            operands: vec![re, im],
         }
     }
 }
@@ -174,6 +182,20 @@ impl Expr {
         }
     }
 
+    pub fn re(&self) -> Expr {
+        match self.kind {
+            ExprKind::Complex => self.operands[0].clone(),
+            _ => self.clone(),
+        }
+    }
+
+    pub fn im(&self) -> Expr {
+        match self.kind {
+            ExprKind::Complex => self.operands[1].clone(),
+            _ => Expr::int(0),
+        }
+    }
+
     pub fn is_undefined(&self) -> bool {
         match self.kind {
             ExprKind::Undefined => true,
@@ -193,6 +215,21 @@ impl Display for Expr {
             ExprKind::Symbol(ref s) => write!(f, "{}", s),
             ExprKind::Integer(n) => write!(f, "{}", n),
             ExprKind::Fraction(n, d) => write!(f, "{}/{}", n, d),
+            ExprKind::Complex => {
+                if self.operands[0].kind == ExprKind::Integer(0) {
+                    if self.operands[1].kind == ExprKind::Integer(1) {
+                        write!(f, "\u{1d55a}")
+                    } else {
+                        write!(f, "{}\u{1d55a}", self.operands[1])
+                    }
+                } else {
+                    if self.operands[1].is_positive_num() {
+                        write!(f, "({}+{}\u{1d55a})", self.operands[0], self.operands[1])
+                    } else {
+                        write!(f, "({}{}\u{1d55a})", self.operands[0], self.operands[1])
+                    }
+                }
+            }
             ExprKind::Sum => {
                 let mut s = String::new();
                 for (i, operand) in self.operands.iter().enumerate() {
@@ -265,6 +302,10 @@ impl Ord for Expr {
                 let d2 = other.denominator();
                 (n1 * d2).cmp(&(n2 * d1))
             }
+            (ExprKind::Complex, ExprKind::Complex) => match self.re().cmp(&other.re()) {
+                Ordering::Equal => self.im().cmp(&other.im()),
+                ord => ord,
+            },
             // 0..9 < A..Z < a..z
             (ExprKind::Symbol(ref s1), ExprKind::Symbol(ref s2)) => s1.cmp(s2),
             (ExprKind::Sum, ExprKind::Sum) | (ExprKind::Product, ExprKind::Product) => {
@@ -306,6 +347,7 @@ impl Ord for Expr {
                 }
             }
             (ExprKind::Integer(_) | ExprKind::Fraction(_, _), _) => Ordering::Less,
+            (ExprKind::Complex, _) => Ordering::Less,
             (
                 ExprKind::Product,
                 ExprKind::Power

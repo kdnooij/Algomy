@@ -53,10 +53,7 @@ fn parse_expr(pairs: Pairs<Rule>, pratt: &PrattParser<Rule>) -> Expr {
     pratt
         .map_primary(|operand| match operand.as_rule() {
             Rule::num => parse_num(operand),
-            Rule::symbol => Expr {
-                kind: ExprKind::Symbol(operand.as_str().to_owned()),
-                operands: vec![],
-            },
+            Rule::symbol => parse_symbol(operand),
             Rule::expr => parse_expr(operand.into_inner(), pratt),
             Rule::func => parse_func(operand.into_inner(), pratt),
             _ => unreachable!(),
@@ -134,5 +131,16 @@ fn parse_func(mut pairs: Pairs<Rule>, pratt: &PrattParser<Rule>) -> Expr {
     Expr {
         kind: ExprKind::Func(func_name.to_owned()),
         operands,
+    }
+}
+
+fn parse_symbol(pair: Pair<Rule>) -> Expr {
+    let s = pair.as_str();
+    match s {
+        "I" => Expr::complex(Expr::int(0), Expr::int(1)),
+        _ => Expr {
+            kind: ExprKind::Symbol(s.to_owned()),
+            operands: vec![],
+        },
     }
 }

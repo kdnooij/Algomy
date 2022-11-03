@@ -4,6 +4,7 @@ symbol = @{ LETTER ~ (LETTER | ASCII_DIGIT)* }
 num = @{ int }
 int = @{ (ASCII_NONZERO_DIGIT ~ ASCII_DIGIT+ | ASCII_DIGIT) }
 
+
 infix = _{ add | sub | mul | div | pow }
     add       = { "+" }
     sub       = { "-" }

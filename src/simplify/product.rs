@@ -1,6 +1,9 @@
 use crate::expression::{Expr, ExprKind};
 
-use super::{power::simplify_power, rational_number::simplify_rne, sum::simplify_sum};
+use super::{
+    complex_number::simplify_cne, power::simplify_power, rational_number::simplify_rne,
+    sum::simplify_sum,
+};
 
 pub fn simplify_product(u: &Expr) -> Expr {
     if u.operands.iter().find(|v| v.is_undefined()).is_some() {
@@ -34,20 +37,22 @@ fn simplify_product_recursive(l: &[Expr]) -> Vec<Expr> {
     if l.len() == 2 && l[0].kind != ExprKind::Product && l[1].kind != ExprKind::Product {
         let u1 = &l[0];
         let u2 = &l[1];
-        match [&u1.kind, &u2.kind] {
-            [ExprKind::Integer(_) | ExprKind::Fraction(_, _), ExprKind::Integer(_) | ExprKind::Fraction(_, _)] =>
-            {
-                let p = simplify_rne(&Expr::times(u1.clone(), u2.clone()));
+        match (&u1.kind, &u2.kind) {
+            (
+                ExprKind::Integer(_) | ExprKind::Fraction(_, _) | ExprKind::Complex,
+                ExprKind::Integer(_) | ExprKind::Fraction(_, _) | ExprKind::Complex,
+            ) => {
+                let p = simplify_cne(&Expr::times(u1.clone(), u2.clone()));
                 if let ExprKind::Integer(1) = p.kind {
                     vec![]
                 } else {
                     vec![p]
                 }
             }
-            [ExprKind::Integer(1), _] => {
+            (ExprKind::Integer(1), _) => {
                 vec![u2.clone()]
             }
-            [_, ExprKind::Integer(1)] => {
+            (_, ExprKind::Integer(1)) => {
                 vec![u1.clone()]
             }
             _ => {
