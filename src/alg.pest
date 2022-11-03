@@ -1,0 +1,35 @@
+symbol = @{ LETTER ~ (LETTER | ASCII_DIGIT)* }
+
+// num = @{ int ~ ("." ~ ASCII_DIGIT*)? ~ (^"e" ~ int)? }
+num = @{ int }
+int = @{ (ASCII_NONZERO_DIGIT ~ ASCII_DIGIT+ | ASCII_DIGIT) }
+
+infix = _{ add | sub | mul | div | pow }
+    add       = { "+" }
+    sub       = { "-" }
+    mul       = { "*" }
+    div       = { "/" }
+    pow       = { "^" }
+
+prefix  =  _{ neg }
+    neg       = { "-" }
+postfix =  _{ fac }
+    fac       = { "!" }
+
+assignment = _{ ":=" }
+
+expr       = { prefix* ~ primary ~ postfix* ~ (infix ~ prefix* ~ primary ~ postfix* )* }
+func       = { func_name ~ "[" ~ expr ~ ( "," ~ expr )* ~ "]" }
+    func_name = { LETTER ~ (LETTER | ASCII_DIGIT)* }
+
+primary    = _{ func | symbol | num | "(" ~ expr ~ ")" }
+
+statement  = { symbol ~ assignment ~ expr }
+
+line = { statement | expr }
+
+program = _{ SOI ~ (line ~ NEWLINE )* ~ line? ~ EOI }
+
+
+WHITESPACE = _{ " " | "\t" }
+NEWLINE = _{ "\n" | "\r\n" }
