@@ -9,6 +9,8 @@ mod evaluate;
 mod expression;
 mod parser;
 mod simplify;
+mod polynomial;
+mod classify;
 
 extern crate pest;
 #[macro_use]

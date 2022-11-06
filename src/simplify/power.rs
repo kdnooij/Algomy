@@ -1,6 +1,6 @@
 use crate::expression::{Expr, ExprKind};
 
-use super::{product::simplify_product, rational_number::simplify_rne, complex_number::simplify_cne};
+use super::{product::simplify_product, rational_number::simplify_rne, gaussian_number::simplify_grne};
 
 pub fn simplify_power(u: &Expr) -> Expr {
     let v = &u.operands[0];
@@ -22,8 +22,8 @@ pub fn simplify_power(u: &Expr) -> Expr {
 
 pub fn simplify_integer_power(v: &Expr, n: i64) -> Expr {
     match (&v.kind, n) {
-        (ExprKind::Integer(_) | ExprKind::Fraction(_, _) | ExprKind::Complex, _) => {
-            simplify_cne(&Expr::power(v.clone(), Expr::int(n)))
+        (ExprKind::Integer(_) | ExprKind::Fraction(_, _) | ExprKind::Gaussian, _) => {
+            simplify_grne(&Expr::power(v.clone(), Expr::int(n)))
         }
         (_, 0) => Expr::int(1),
         (_, 1) => v.clone(),

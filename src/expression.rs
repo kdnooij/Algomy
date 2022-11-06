@@ -1,4 +1,9 @@
-use std::{cmp::Ordering, fmt::Debug, fmt::Display};
+use std::{
+    cmp::Ordering,
+    fmt::Debug,
+    fmt::Display,
+    iter::{Product, Sum},
+};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ExprKind {
@@ -7,7 +12,7 @@ pub enum ExprKind {
     Symbol(String),
     Integer(i64),
     Fraction(i64, i64),
-    Complex,
+    Gaussian,
     Sum,
     Difference,
     Product,
@@ -93,9 +98,9 @@ impl Expr {
         }
     }
 
-    pub fn complex(re: Expr, im: Expr) -> Expr {
+    pub fn gaussian(re: Expr, im: Expr) -> Expr {
         Expr {
-            kind: ExprKind::Complex,
+            kind: ExprKind::Gaussian,
             operands: vec![re, im],
         }
     }
@@ -184,14 +189,14 @@ impl Expr {
 
     pub fn re(&self) -> Expr {
         match self.kind {
-            ExprKind::Complex => self.operands[0].clone(),
+            ExprKind::Gaussian => self.operands[0].clone(),
             _ => self.clone(),
         }
     }
 
     pub fn im(&self) -> Expr {
         match self.kind {
-            ExprKind::Complex => self.operands[1].clone(),
+            ExprKind::Gaussian => self.operands[1].clone(),
             _ => Expr::int(0),
         }
     }
@@ -215,7 +220,7 @@ impl Display for Expr {
             ExprKind::Symbol(ref s) => write!(f, "{}", s),
             ExprKind::Integer(n) => write!(f, "{}", n),
             ExprKind::Fraction(n, d) => write!(f, "{}/{}", n, d),
-            ExprKind::Complex => {
+            ExprKind::Gaussian => {
                 if self.operands[0].kind == ExprKind::Integer(0) {
                     if self.operands[1].kind == ExprKind::Integer(1) {
                         write!(f, "\u{1d55a}")
@@ -302,7 +307,7 @@ impl Ord for Expr {
                 let d2 = other.denominator();
                 (n1 * d2).cmp(&(n2 * d1))
             }
-            (ExprKind::Complex, ExprKind::Complex) => match self.re().cmp(&other.re()) {
+            (ExprKind::Gaussian, ExprKind::Gaussian) => match self.re().cmp(&other.re()) {
                 Ordering::Equal => self.im().cmp(&other.im()),
                 ord => ord,
             },
@@ -347,7 +352,7 @@ impl Ord for Expr {
                 }
             }
             (ExprKind::Integer(_) | ExprKind::Fraction(_, _), _) => Ordering::Less,
-            (ExprKind::Complex, _) => Ordering::Less,
+            (ExprKind::Gaussian, _) => Ordering::Less,
             (
                 ExprKind::Product,
                 ExprKind::Power
@@ -386,6 +391,34 @@ impl Ord for Expr {
                 Ordering::Less => Ordering::Greater,
                 Ordering::Greater => Ordering::Less,
                 Ordering::Equal => Ordering::Equal,
+            },
+        }
+    }
+}
+
+impl Sum for Expr {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        let operands: Vec<_> = iter.collect();
+        match operands.len() {
+            0 => Expr::int(0),
+            1 => operands[0].clone(),
+            _ => Expr {
+                kind: ExprKind::Sum,
+                operands,
+            },
+        }
+    }
+}
+
+impl Product for Expr {
+    fn product<I: Iterator<Item = Self>>(iter: I) -> Self {
+        let operands: Vec<_> = iter.collect();
+        match operands.len() {
+            0 => Expr::int(1),
+            1 => operands[0].clone(),
+            _ => Expr {
+                kind: ExprKind::Product,
+                operands,
             },
         }
     }

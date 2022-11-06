@@ -137,7 +137,7 @@ fn parse_func(mut pairs: Pairs<Rule>, pratt: &PrattParser<Rule>) -> Expr {
 fn parse_symbol(pair: Pair<Rule>) -> Expr {
     let s = pair.as_str();
     match s {
-        "I" => Expr::complex(Expr::int(0), Expr::int(1)),
+        "I" => Expr::gaussian(Expr::int(0), Expr::int(1)),
         _ => Expr {
             kind: ExprKind::Symbol(s.to_owned()),
             operands: vec![],

@@ -1,6 +1,6 @@
 use crate::expression::{Expr, ExprKind};
 
-use super::{product::simplify_product, rational_number::simplify_rne, complex_number::simplify_cne};
+use super::{product::simplify_product, rational_number::simplify_rne, gaussian_number::simplify_grne};
 
 pub fn simplify_sum(u: &Expr) -> Expr {
     if u.operands.iter().find(|v| v.is_undefined()).is_some() {
@@ -28,11 +28,11 @@ pub fn simplify_sum_recursive(l: &[Expr]) -> Vec<Expr> {
         let u2 = &l[1];
         match (&u1.kind, &u2.kind) {
             (
-                ExprKind::Integer(_) | ExprKind::Fraction(_, _) | ExprKind::Complex,
-                ExprKind::Integer(_) | ExprKind::Fraction(_, _) | ExprKind::Complex,
+                ExprKind::Integer(_) | ExprKind::Fraction(_, _) | ExprKind::Gaussian,
+                ExprKind::Integer(_) | ExprKind::Fraction(_, _) | ExprKind::Gaussian,
             ) => {
                 // addition of constant operands in sum
-                let p = simplify_cne(&Expr::plus(u1.clone(), u2.clone()));
+                let p = simplify_grne(&Expr::plus(u1.clone(), u2.clone()));
                 if let ExprKind::Integer(0) = p.kind {
                     vec![]
                 } else {
