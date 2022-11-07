@@ -84,7 +84,7 @@ fn simplify_rne_recursive(u: &Expr) -> Expr {
                             Expr::undefined()
                         } else {
                             // Since u is an RNE, u.operands[1] is an integer
-                            evaluate_power(&v, u.operands[1].numerator())
+                            evaluate_power(&v, u.operands[1].numerator_rne())
                         }
                     }
                     _ => unreachable!(),

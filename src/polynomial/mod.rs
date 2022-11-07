@@ -1,9 +1,12 @@
-use crate::expression::{Expr, ExprKind};
+use crate::{
+    expression::{Expr, ExprKind},
+    simplify,
+};
 
 use self::monomial::Monomial;
 
-mod monomial;
 mod expand;
+mod monomial;
 
 impl Expr {
     /// Takes an expression and returns all the monomials in it.
@@ -25,7 +28,7 @@ impl Expr {
     /// of all monomials with variable part of the form `v^j` in the expression.
     pub fn coefficient_gpe(&self, var: &Expr, exp: i64) -> Expr {
         let monomials = self.as_gpe();
-        monomials.iter().map(|m| m.coefficient(var, exp)).sum()
+        simplify(&monomials.iter().map(|m| m.coefficient(var, exp)).sum())
     }
 
     /// Takes an expression and a variable and returns the leading coefficient of the variable in the expression

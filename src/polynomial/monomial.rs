@@ -1,4 +1,7 @@
-use crate::expression::{Expr, ExprKind};
+use crate::{
+    expression::{Expr, ExprKind},
+    simplify,
+};
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Monomial {
@@ -82,7 +85,7 @@ impl Monomial {
 
     pub fn coefficient(&self, var: &Expr, exp: i64) -> Expr {
         if self.vars.len() == 1 && self.vars[0].0 == *var && self.vars[0].1 == exp {
-            self.coeffs.iter().cloned().product()
+            simplify(&self.coeffs.iter().cloned().product())
         } else {
             Expr::int(0)
         }

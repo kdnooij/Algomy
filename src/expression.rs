@@ -5,6 +5,8 @@ use std::{
     iter::{Product, Sum},
 };
 
+use crate::simplify;
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ExprKind {
     Undefined,
@@ -96,7 +98,7 @@ impl Expr {
     }
 
     pub fn sum(operands: Vec<Expr>) -> Expr {
-        if operands.len() >0 {
+        if operands.len() > 0 {
             Expr {
                 kind: ExprKind::Sum,
                 operands,
@@ -126,6 +128,13 @@ impl Expr {
             operands: vec![re, im],
         }
     }
+
+    pub fn function(name: &str, operands: Vec<Expr>) -> Expr {
+        Expr {
+            kind: ExprKind::Func(name.to_string()),
+            operands,
+        }
+    }
 }
 
 impl Expr {
@@ -148,7 +157,7 @@ impl Expr {
         }
     }
 
-    pub fn numerator(&self) -> i64 {
+    pub fn numerator_rne(&self) -> i64 {
         match self.kind {
             ExprKind::Integer(n) => n,
             ExprKind::Fraction(n, _) => n,
@@ -156,11 +165,29 @@ impl Expr {
         }
     }
 
-    pub fn denominator(&self) -> i64 {
+    pub fn denominator_rne(&self) -> i64 {
         match self.kind {
             ExprKind::Integer(_) => 1,
             ExprKind::Fraction(_, d) => d,
             _ => unreachable!(),
+        }
+    }
+
+    pub fn numerator(&self) -> Expr {
+        match self.kind {
+            ExprKind::Integer(_) | ExprKind::Fraction(_, _) => Expr::int(self.numerator_rne()),
+            ExprKind::Quotient => self.operands[0].clone(),
+            ExprKind::Product => simplify(&self.operands.iter().map(|x| x.numerator()).product()),
+            _ => self.clone(),
+        }
+    }
+
+    pub fn denominator(&self) -> Expr {
+        match self.kind {
+            ExprKind::Integer(_) | ExprKind::Fraction(_, _) => Expr::int(self.denominator_rne()),
+            ExprKind::Quotient => self.operands[1].clone(),
+            ExprKind::Product => simplify(&self.operands.iter().map(|x| x.denominator()).product()),
+            _ => self.clone(),
         }
     }
 
@@ -178,6 +205,7 @@ impl Expr {
         }
     }
 
+    /// Returns the leading coefficient of a product expression
     pub fn product_coeff(&self) -> Expr {
         match self.kind {
             ExprKind::Product => match self.operands[0].kind {
@@ -189,6 +217,7 @@ impl Expr {
         }
     }
 
+    /// Returns the variable part of a product expression
     pub fn product_rest(&self) -> Expr {
         match self.kind {
             ExprKind::Product => match self.operands[0].kind {
@@ -209,17 +238,25 @@ impl Expr {
         }
     }
 
+    /// Returns the real part of a gaussian number
     pub fn re(&self) -> Expr {
         match self.kind {
+            ExprKind::Integer(_) | ExprKind::Fraction(_, _) => self.clone(),
             ExprKind::Gaussian => self.operands[0].clone(),
-            _ => self.clone(),
+            ExprKind::Sum => simplify(&self.operands.iter().map(|u| u.re()).sum()),
+            ExprKind::Product => simplify(&self.operands.iter().map(|u| u.re()).product()),
+            _ => Expr::function("Re", vec![self.clone()]),
         }
     }
 
+    /// Returns the imaginary part of a gaussian number
     pub fn im(&self) -> Expr {
         match self.kind {
+            ExprKind::Integer(_) | ExprKind::Fraction(_, _) => Expr::int(0),
             ExprKind::Gaussian => self.operands[1].clone(),
-            _ => Expr::int(0),
+            ExprKind::Sum => simplify(&self.operands.iter().map(|u| u.im()).sum()),
+            ExprKind::Product => simplify(&self.operands.iter().map(|u| u.im()).product()),
+            _ => Expr::function("Im", vec![self.clone()]),
         }
     }
 
@@ -323,10 +360,10 @@ impl Ord for Expr {
                 ExprKind::Integer(_) | ExprKind::Fraction(_, _),
                 ExprKind::Integer(_) | ExprKind::Fraction(_, _),
             ) => {
-                let n1 = self.numerator();
-                let d1 = self.denominator();
-                let n2 = other.numerator();
-                let d2 = other.denominator();
+                let n1 = self.numerator_rne();
+                let d1 = self.denominator_rne();
+                let n2 = other.numerator_rne();
+                let d2 = other.denominator_rne();
                 (n1 * d2).cmp(&(n2 * d1))
             }
             (ExprKind::Gaussian, ExprKind::Gaussian) => match self.re().cmp(&other.re()) {

@@ -42,7 +42,7 @@ pub fn evaluate_product_gaussian(v: &Expr, w: &Expr) -> Expr {
 
 /// Evaluates v/w where `v` and `w` are integers, fractions or gaussian numbers
 pub fn evaluate_quotient_gaussian(v: &Expr, w: &Expr) -> Expr {
-    if w.re().numerator() == 0 && w.im().numerator() == 0 {
+    if w.re().numerator_rne() == 0 && w.im().numerator_rne() == 0 {
         Expr::undefined()
     } else {
         let v_re = v.re(); // a
@@ -72,7 +72,7 @@ pub fn evaluate_quotient_gaussian(v: &Expr, w: &Expr) -> Expr {
 
 /// Evaluates v^n where `v` is an integer, fraction or gaussian number with non-zero denominator and `n` is an integer
 pub fn evaluate_power_gaussian(v: &Expr, n: i64) -> Expr {
-    if v.re().numerator() != 0 || v.im().numerator() != 0 {
+    if v.re().numerator_rne() != 0 || v.im().numerator_rne() != 0 {
         if n > 0 {
             let s = evaluate_power_gaussian(v, n - 1);
             evaluate_product_gaussian(&s, v)
