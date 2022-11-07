@@ -7,6 +7,9 @@ use self::monomial::Monomial;
 
 mod expand;
 mod monomial;
+mod division;
+
+pub use division::*;
 
 impl Expr {
     /// Takes an expression and returns all the monomials in it.

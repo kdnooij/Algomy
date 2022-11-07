@@ -1,5 +1,6 @@
 use crate::{
     expression::{Expr, ExprKind},
+    polynomial::{self, polynomial_quotient, polynomial_remainder},
     simplify,
 };
 
@@ -33,6 +34,12 @@ fn evaluate_function_by_name(name: &str, expr: &Expr) -> Expr {
             } else {
                 Expr::undefined()
             }
+        }
+        ("PolynomialQuotient", 3) => {
+            polynomial_quotient(&expr.operands[0], &expr.operands[1], &expr.operands[2])
+        }
+        ("PolynomialRemainder", 3) => {
+            polynomial_remainder(&expr.operands[0], &expr.operands[1], &expr.operands[2])
         }
         _ => expr.clone(),
     }
