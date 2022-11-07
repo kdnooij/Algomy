@@ -11,6 +11,7 @@ mod power;
 mod product;
 mod quotient;
 mod rational_number;
+mod set;
 mod sum;
 
 use difference::simplify_difference;
@@ -22,7 +23,10 @@ use quotient::simplify_quotient;
 use rational_number::simplify_rational_number;
 use sum::simplify_sum;
 
-use self::logic::{simplify_not, simplify_or, simplify_and};
+use self::{
+    logic::{simplify_and, simplify_not, simplify_or},
+    set::{simplify_intersection, simplify_set, simplify_union, simplify_member},
+};
 
 pub fn simplify(expr: &Expr) -> Expr {
     match &expr.kind {
@@ -43,8 +47,51 @@ pub fn simplify(expr: &Expr) -> Expr {
                 ExprKind::Not => simplify_not(&expr),
                 ExprKind::Or => simplify_or(&expr),
                 ExprKind::And => simplify_and(&expr),
+
+                ExprKind::Set => simplify_set(&expr),
+                ExprKind::Union => simplify_union(&expr),
+                ExprKind::Intersection => simplify_intersection(&expr),
+                ExprKind::SetDifference => simplify_difference(&expr),
+                ExprKind::Member => simplify_member(&expr),
                 _ => unreachable!(),
             }
+        }
+    }
+}
+
+pub(self) fn merge_nary<F>(p: &[Expr], q: &[Expr], simplify_fn: F) -> Vec<Expr>
+where
+    F: Fn(&[Expr]) -> Vec<Expr>,
+{
+    if q.is_empty() {
+        p.to_vec()
+    } else if p.is_empty() {
+        q.to_vec()
+    } else {
+        let p1 = &p[0];
+        let q1 = &q[0];
+        let h = simplify_fn(&vec![p1.clone(), q1.clone()]);
+        match &h[..] {
+            [] => merge_nary(&p[1..], &q[1..], simplify_fn),
+            [h1] => {
+                let mut r = vec![h1.clone()];
+                r.append(&mut merge_nary(&p[1..], &q[1..], simplify_fn));
+                r
+            }
+            [a, b] => {
+                if a == p1 && b == q1 {
+                    let mut r = vec![p1.clone()];
+                    r.append(&mut merge_nary(&p[1..], &q, simplify_fn));
+                    r
+                } else if a == q1 && b == p1 {
+                    let mut r = vec![q1.clone()];
+                    r.append(&mut merge_nary(&p, &q[1..], simplify_fn));
+                    r
+                } else {
+                    unreachable!()
+                }
+            }
+            _ => unreachable!(),
         }
     }
 }

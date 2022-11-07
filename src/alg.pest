@@ -5,7 +5,7 @@ num = @{ int }
 int = @{ (ASCII_NONZERO_DIGIT ~ ASCII_DIGIT+ | ASCII_DIGIT) }
 
 
-infix = _{ add | sub | mul | div | pow | and | or }
+infix = _{ add | sub | mul | div | pow | and | or | setdiff }
     add       = { "+" }
     sub       = { "-" }
     mul       = { "*" }
@@ -13,6 +13,7 @@ infix = _{ add | sub | mul | div | pow | and | or }
     pow       = { "^" }
     and       = { "&&" }
     or        = { "||" }
+    setdiff   = { "\\" }
 
 prefix  =  _{ neg | not}
     neg       = { "-" }
@@ -23,17 +24,18 @@ postfix =  _{ fac }
 assignment = _{ ":=" }
 
 expr       = { prefix* ~ primary ~ postfix* ~ (infix ~ prefix* ~ primary ~ postfix* )* }
-func       = { func_name ~ "[" ~ expr ~ ( "," ~ expr )* ~ "]" }
+func       = { func_name ~ "[" ~ (expr ~ ( "," ~ expr )*)? ~ "]" }
     func_name = { LETTER ~ (LETTER | ASCII_DIGIT)* }
 
-primary    = _{ func | symbol | num | "(" ~ expr ~ ")" }
+set        = { "{" ~ (expr ~ ( "," ~ expr )*)? ~ "}" }
+
+primary    = _{ func | symbol | num | set | "(" ~ expr ~ ")" }
 
 statement  = { symbol ~ assignment ~ expr }
 
 line = { statement | expr }
 
 program = _{ SOI ~ (line ~ NEWLINE )* ~ line? ~ EOI }
-
 
 WHITESPACE = _{ " " | "\t" }
 NEWLINE = _{ "\n" | "\r\n" }

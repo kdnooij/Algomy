@@ -13,7 +13,7 @@ lazy_static! {
         // [+, -] < [*, /] < [^] < [!] < [(-)]
         PrattParser::new().op(Op::infix(Rule::add, Assoc::Left) | Op::infix(Rule::sub, Assoc::Left) | Op::infix(Rule::or, Assoc::Left))
         .op(Op::infix(Rule::mul, Assoc::Left) | Op::infix(Rule::div, Assoc::Left) | Op::infix(Rule::and, Assoc::Left))
-        .op(Op::infix(Rule::pow, Assoc::Right))
+        .op(Op::infix(Rule::pow, Assoc::Right) | Op::infix(Rule::setdiff, Assoc::Right))
         .op(Op::prefix(Rule::not))
         .op(Op::postfix(Rule::fac))
         .op(Op::prefix(Rule::neg))
@@ -57,6 +57,7 @@ fn parse_expr(pairs: Pairs<Rule>, pratt: &PrattParser<Rule>) -> Expr {
             Rule::symbol => parse_symbol(operand),
             Rule::expr => parse_expr(operand.into_inner(), pratt),
             Rule::func => parse_func(operand.into_inner(), pratt),
+            Rule::set => parse_set(operand.into_inner(), pratt),
             _ => unreachable!(),
         })
         .map_prefix(|op, rhs| match op.as_rule() {
@@ -141,15 +142,36 @@ fn parse_func(mut pairs: Pairs<Rule>, pratt: &PrattParser<Rule>) -> Expr {
         let expr = parse_expr(pair.into_inner(), pratt);
         operands.push(expr);
     }
-    Expr {
-        kind: ExprKind::Func(func_name.to_owned()),
-        operands,
+
+    // Check for reserved names
+    match func_name {
+        "Union" => Expr {
+            kind: ExprKind::Union,
+            operands,
+        },
+        "Intersection" => Expr {
+            kind: ExprKind::Intersection,
+            operands,
+        },
+        "Difference" => Expr {
+            kind: ExprKind::Difference,
+            operands,
+        },
+        "Member" => Expr {
+            kind: ExprKind::Member,
+            operands,
+        },
+        _ => Expr {
+            kind: ExprKind::Func(func_name.to_owned()),
+            operands,
+        },
     }
 }
 
 fn parse_symbol(pair: Pair<Rule>) -> Expr {
     let s = pair.as_str();
     match s {
+        "Undefined" => Expr::undefined(),
         "I" => Expr::gaussian(Expr::int(0), Expr::int(1)),
         "True" => Expr::bool(true),
         "False" => Expr::bool(false),
@@ -157,5 +179,17 @@ fn parse_symbol(pair: Pair<Rule>) -> Expr {
             kind: ExprKind::Symbol(s.to_owned()),
             operands: vec![],
         },
+    }
+}
+
+fn parse_set(pairs: Pairs<Rule>, pratt: &PrattParser<Rule>) -> Expr {
+    let mut operands = vec![];
+    for pair in pairs {
+        let expr = parse_expr(pair.into_inner(), pratt);
+        operands.push(expr);
+    }
+    Expr {
+        kind: ExprKind::Set,
+        operands,
     }
 }

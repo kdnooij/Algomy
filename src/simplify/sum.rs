@@ -1,6 +1,6 @@
 use crate::expression::{Expr, ExprKind};
 
-use super::{product::simplify_product, gaussian_number::simplify_grne};
+use super::{gaussian_number::simplify_grne, merge_nary, product::simplify_product};
 
 pub fn simplify_sum(u: &Expr) -> Expr {
     if u.operands.iter().find(|v| v.is_undefined()).is_some() {
@@ -71,54 +71,22 @@ pub fn simplify_sum_recursive(l: &[Expr]) -> Vec<Expr> {
         let u2 = &l[1];
         match [&u1.kind, &u2.kind] {
             // (a + b) + (c + d) -> a + b + c + d
-            [ExprKind::Sum, ExprKind::Sum] => merge_sums(&u1.operands, &u2.operands),
+            [ExprKind::Sum, ExprKind::Sum] => {
+                merge_nary(&u1.operands, &u2.operands, simplify_sum_recursive)
+            }
             // (a + b) + c -> a + b + c
-            [ExprKind::Sum, _] => merge_sums(&u1.operands, &[u2.clone()]),
+            [ExprKind::Sum, _] => merge_nary(&u1.operands, &[u2.clone()], simplify_sum_recursive),
             // a + (b + c) -> a + b + c
-            [_, ExprKind::Sum] => merge_sums(&[u1.clone()], &u2.operands),
+            [_, ExprKind::Sum] => merge_nary(&[u1.clone()], &u2.operands, simplify_sum_recursive),
             _ => unreachable!(),
         }
     } else {
         // l.len() > 2
         let w = simplify_sum_recursive(&l[1..]);
         if let ExprKind::Sum = l[0].kind {
-            merge_sums(&l[0].operands, &w)
+            merge_nary(&l[0].operands, &w, simplify_sum_recursive)
         } else {
-            merge_sums(&[l[0].clone()], &w)
-        }
-    }
-}
-
-fn merge_sums(p: &[Expr], q: &[Expr]) -> Vec<Expr> {
-    if q.is_empty() {
-        p.to_vec()
-    } else if p.is_empty() {
-        q.to_vec()
-    } else {
-        let p1 = &p[0];
-        let q1 = &q[0];
-        let h = simplify_sum_recursive(&vec![p1.clone(), q1.clone()]);
-        match &h[..] {
-            [] => merge_sums(&p[1..], &q[1..]),
-            [h1] => {
-                let mut r = vec![h1.clone()];
-                r.append(&mut merge_sums(&p[1..], &q[1..]));
-                r
-            }
-            [a, b] => {
-                if a == p1 && b == q1 {
-                    let mut r = vec![p1.clone()];
-                    r.append(&mut merge_sums(&p[1..], &q));
-                    r
-                } else if a == q1 && b == p1 {
-                    let mut r = vec![q1.clone()];
-                    r.append(&mut merge_sums(&p, &q[1..]));
-                    r
-                } else {
-                    unreachable!()
-                }
-            }
-            _ => unreachable!(),
+            merge_nary(&[l[0].clone()], &w, simplify_sum_recursive)
         }
     }
 }

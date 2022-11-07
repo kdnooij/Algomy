@@ -64,7 +64,7 @@ impl Display for Expr {
                     }
                     s.push_str(&format!("{}", operand));
                 }
-                write!(f, "{}({})", name, s)
+                write!(f, "{}[{}]", name, s)
             }
             ExprKind::Boolean(b) => match b {
                 true => write!(f, "True"),
@@ -90,6 +90,42 @@ impl Display for Expr {
                     s.push_str(&format!("{}", operand));
                 }
                 write!(f, "({})", s)
+            }
+            ExprKind::Set => {
+                let mut s = String::new();
+                for (i, operand) in self.operands.iter().enumerate() {
+                    if i > 0 {
+                        s.push_str(", ");
+                    }
+                    s.push_str(&format!("{}", operand));
+                }
+                write!(f, "{{{}}}", s)
+            }
+            ExprKind::Union => {
+                let mut s = String::new();
+                for (i, operand) in self.operands.iter().enumerate() {
+                    if i > 0 {
+                        s.push_str(" \u{222a} ");
+                    }
+                    s.push_str(&format!("{}", operand));
+                }
+                write!(f, "({})", s)
+            }
+            ExprKind::Intersection => {
+                let mut s = String::new();
+                for (i, operand) in self.operands.iter().enumerate() {
+                    if i > 0 {
+                        s.push_str(" \u{2229} ");
+                    }
+                    s.push_str(&format!("{}", operand));
+                }
+                write!(f, "({})", s)
+            }
+            ExprKind::SetDifference => {
+                write!(f, "({} \\ {})", self.operands[0], self.operands[1])
+            }
+            ExprKind::Member => {
+                write!(f, "({} \u{2208} {})", self.operands[0], self.operands[1])
             }
         }
     }

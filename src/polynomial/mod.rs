@@ -5,9 +5,9 @@ use crate::{
 
 use self::monomial::Monomial;
 
+mod division;
 mod expand;
 mod monomial;
-mod division;
 
 pub use division::*;
 
@@ -41,17 +41,21 @@ impl Expr {
     }
 
     /// Takes an expression and returns all generalized variables in the monomials of the expression.
-    /// The result is sorted and without duplicates.
-    pub fn variables(&self) -> Vec<Expr> {
+    /// The result is a set of all generalized variables
+    pub fn variables(&self) -> Expr {
         let monomials = self.as_gpe();
-        let mut vars: Vec<Expr> = monomials
+        let vars: Vec<Expr> = monomials
             .iter()
-            .map(|m| m.vars.iter().map(|(v, _)| v.clone()).collect::<Vec<_>>())
+            .map(|m| {
+                m.vars
+                    .iter()
+                    .filter(|(v, _)| !v.is_grne())
+                    .map(|(v, _)| v.clone())
+                    .collect::<Vec<_>>()
+            })
             .flatten()
             .collect();
-        vars.sort();
-        vars.dedup();
-        vars
+        Expr::set(vars)
     }
 }
 

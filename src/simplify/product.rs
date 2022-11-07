@@ -2,7 +2,7 @@ use crate::expression::{Expr, ExprKind};
 
 use super::{
     gaussian_number::simplify_grne, power::simplify_power,
-    sum::simplify_sum,
+    sum::simplify_sum, merge_nary,
 };
 
 pub fn simplify_product(u: &Expr) -> Expr {
@@ -75,52 +75,18 @@ fn simplify_product_recursive(l: &[Expr]) -> Vec<Expr> {
         let u1 = &l[0];
         let u2 = &l[1];
         match (&u1.kind, &u2.kind) {
-            (ExprKind::Product, ExprKind::Product) => merge_products(&u1.operands, &u2.operands),
-            (ExprKind::Product, _) => merge_products(&u1.operands, &[u2.clone()]),
-            (_, ExprKind::Product) => merge_products(&[u1.clone()], &u2.operands),
+            (ExprKind::Product, ExprKind::Product) => merge_nary(&u1.operands, &u2.operands, simplify_product_recursive),
+            (ExprKind::Product, _) => merge_nary(&u1.operands, &[u2.clone()], simplify_product_recursive),
+            (_, ExprKind::Product) => merge_nary(&[u1.clone()], &u2.operands, simplify_product_recursive),
             _ => unreachable!(),
         }
     } else {
         // l.len() > 2
         let w = simplify_product_recursive(&l[1..]);
         if let ExprKind::Product = l[0].kind {
-            merge_products(&l[0].operands, &w)
+            merge_nary(&l[0].operands, &w, simplify_product_recursive)
         } else {
-            merge_products(&[l[0].clone()], &w)
-        }
-    }
-}
-
-fn merge_products(p: &[Expr], q: &[Expr]) -> Vec<Expr> {
-    if q.is_empty() {
-        p.to_vec()
-    } else if p.is_empty() {
-        q.to_vec()
-    } else {
-        let p1 = &p[0];
-        let q1 = &q[0];
-        let h = simplify_product_recursive(&vec![p1.clone(), q1.clone()]);
-        match &h[..] {
-            [] => merge_products(&p[1..], &q[1..]),
-            [h1] => {
-                let mut r = vec![h1.clone()];
-                r.append(&mut merge_products(&p[1..], &q[1..]));
-                r
-            }
-            [a, b] => {
-                if a == p1 && b == q1 {
-                    let mut r = vec![p1.clone()];
-                    r.append(&mut merge_products(&p[1..], &q));
-                    r
-                } else if a == q1 && b == p1 {
-                    let mut r = vec![q1.clone()];
-                    r.append(&mut merge_products(&p, &q[1..]));
-                    r
-                } else {
-                    unreachable!()
-                }
-            }
-            _ => unreachable!(),
+            merge_nary(&[l[0].clone()], &w, simplify_product_recursive)
         }
     }
 }

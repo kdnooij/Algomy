@@ -40,6 +40,10 @@ fn evaluate_function_by_name(name: &str, expr: &Expr) -> Expr {
         ("PolynomialRemainder", 3) => {
             polynomial_remainder(&expr.operands[0], &expr.operands[1], &expr.operands[2])
         }
+        ("IsInteger", 1) => Expr::bool(expr.operands[0].is_integer()),
+        ("IsRNE", 1) => Expr::bool(expr.operands[0].is_rne()),
+        ("IsGRNE", 1) => Expr::bool(expr.operands[0].is_grne()),
+        ("Variables", 1) => expr.operands[0].variables(),
         _ => expr.clone(),
     }
 }

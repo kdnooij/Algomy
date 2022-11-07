@@ -1,5 +1,7 @@
 use crate::expression::{Expr, ExprKind};
 
+use super::merge_nary;
+
 pub fn simplify_not(expr: &Expr) -> Expr {
     let u = &expr.operands[0];
 
@@ -65,52 +67,20 @@ fn simplify_or_recursive(l: &[Expr]) -> Vec<Expr> {
         let u1 = &l[0];
         let u2 = &l[1];
         match (&u1.kind, &u2.kind) {
-            (ExprKind::Or, ExprKind::Or) => merge_ors(&u1.operands, &u2.operands),
-            (ExprKind::Or, _) => merge_ors(&u1.operands, &[u2.clone()]),
-            (_, ExprKind::Or) => merge_ors(&[u1.clone()], &u2.operands),
+            (ExprKind::Or, ExprKind::Or) => {
+                merge_nary(&u1.operands, &u2.operands, simplify_or_recursive)
+            }
+            (ExprKind::Or, _) => merge_nary(&u1.operands, &[u2.clone()], simplify_or_recursive),
+            (_, ExprKind::Or) => merge_nary(&[u1.clone()], &u2.operands, simplify_or_recursive),
             _ => unreachable!(),
         }
     } else {
         // l.len() > 2
         let w = simplify_or_recursive(&l[1..]);
         if let ExprKind::Or = l[0].kind {
-            merge_ors(&l[0].operands, &w)
+            merge_nary(&l[0].operands, &w, simplify_or_recursive)
         } else {
-            merge_ors(&[l[0].clone()], &w)
-        }
-    }
-}
-
-fn merge_ors(p: &[Expr], q: &[Expr]) -> Vec<Expr> {
-    if q.is_empty() {
-        p.to_vec()
-    } else if p.is_empty() {
-        q.to_vec()
-    } else {
-        let p1 = &p[0];
-        let q1 = &q[0];
-        let h = simplify_or_recursive(&vec![p1.clone(), q1.clone()]);
-        match &h[..] {
-            [] => merge_ors(&p[1..], &q[1..]),
-            [h1] => {
-                let mut r = vec![h1.clone()];
-                r.append(&mut merge_ors(&p[1..], &q[1..]));
-                r
-            }
-            [a, b] => {
-                if a == p1 && b == q1 {
-                    let mut r = vec![p1.clone()];
-                    r.append(&mut merge_ors(&p[1..], &q));
-                    r
-                } else if a == q1 && b == p1 {
-                    let mut r = vec![q1.clone()];
-                    r.append(&mut merge_ors(&p, &q[1..]));
-                    r
-                } else {
-                    unreachable!()
-                }
-            }
-            _ => unreachable!(),
+            merge_nary(&[l[0].clone()], &w, simplify_or_recursive)
         }
     }
 }
@@ -169,52 +139,20 @@ fn simplify_and_recursive(l: &[Expr]) -> Vec<Expr> {
         let u1 = &l[0];
         let u2 = &l[1];
         match (&u1.kind, &u2.kind) {
-            (ExprKind::And, ExprKind::And) => merge_ands(&u1.operands, &u2.operands),
-            (ExprKind::And, _) => merge_ands(&u1.operands, &[u2.clone()]),
-            (_, ExprKind::And) => merge_ands(&[u1.clone()], &u2.operands),
+            (ExprKind::And, ExprKind::And) => {
+                merge_nary(&u1.operands, &u2.operands, simplify_and_recursive)
+            }
+            (ExprKind::And, _) => merge_nary(&u1.operands, &[u2.clone()], simplify_and_recursive),
+            (_, ExprKind::And) => merge_nary(&[u1.clone()], &u2.operands, simplify_and_recursive),
             _ => unreachable!(),
         }
     } else {
         // l.len() > 2
         let w = simplify_and_recursive(&l[1..]);
         if let ExprKind::And = l[0].kind {
-            merge_ands(&l[0].operands, &w)
+            merge_nary(&l[0].operands, &w, simplify_and_recursive)
         } else {
-            merge_ands(&[l[0].clone()], &w)
-        }
-    }
-}
-
-fn merge_ands(p: &[Expr], q: &[Expr]) -> Vec<Expr> {
-    if q.is_empty() {
-        p.to_vec()
-    } else if p.is_empty() {
-        q.to_vec()
-    } else {
-        let p1 = &p[0];
-        let q1 = &q[0];
-        let h = simplify_and_recursive(&vec![p1.clone(), q1.clone()]);
-        match &h[..] {
-            [] => merge_ands(&p[1..], &q[1..]),
-            [h1] => {
-                let mut r = vec![h1.clone()];
-                r.append(&mut merge_ands(&p[1..], &q[1..]));
-                r
-            }
-            [a, b] => {
-                if a == p1 && b == q1 {
-                    let mut r = vec![p1.clone()];
-                    r.append(&mut merge_ands(&p[1..], &q));
-                    r
-                } else if a == q1 && b == p1 {
-                    let mut r = vec![q1.clone()];
-                    r.append(&mut merge_ands(&p, &q[1..]));
-                    r
-                } else {
-                    unreachable!()
-                }
-            }
-            _ => unreachable!(),
+            merge_nary(&[l[0].clone()], &w, simplify_and_recursive)
         }
     }
 }

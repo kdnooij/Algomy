@@ -26,6 +26,12 @@ pub enum ExprKind {
     Not,
     Or,
     And,
+
+    Set,
+    Union,
+    Intersection,
+    SetDifference,
+    Member,
 }
 
 #[derive(Clone, PartialEq, Eq)]
@@ -152,6 +158,15 @@ impl Expr {
         Expr {
             kind: ExprKind::Not,
             operands: vec![expr],
+        }
+    }
+
+    pub fn set(mut expr: Vec<Expr>) -> Expr {
+        expr.sort();
+        expr.dedup();
+        Expr {
+            kind: ExprKind::Set,
+            operands: expr,
         }
     }
 }
