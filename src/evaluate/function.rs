@@ -44,6 +44,7 @@ fn evaluate_function_by_name(name: &str, expr: &Expr) -> Expr {
         ("IsRNE", 1) => Expr::bool(expr.operands[0].is_rne()),
         ("IsGRNE", 1) => Expr::bool(expr.operands[0].is_grne()),
         ("Variables", 1) => expr.operands[0].variables(),
+        ("FreeOf", 2) => expr.operands[0].free_of(&expr.operands[1]),
         _ => expr.clone(),
     }
 }

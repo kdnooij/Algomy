@@ -11,12 +11,38 @@ impl Expr {
         expr.operands = expr.operands.iter().map(f).collect();
         expr
     }
+
+    pub fn free_of(&self, t: &Expr) -> Expr {
+        Expr::bool(Expr::free_of_bool(self, t))
+    }
+
+    fn free_of_bool(u: &Expr, t: &Expr) -> bool {
+        if u == t {
+            false
+        } else if u.is_atomic() {
+            true
+        } else {
+            u.operands.iter().all(|v| Expr::free_of_bool(v, t))
+        }
+    }
 }
 
 impl Expr {
     pub fn is_undefined(&self) -> bool {
         match self.kind {
             ExprKind::Undefined => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_atomic(&self) -> bool {
+        match self.kind {
+            ExprKind::Undefined => true,
+            ExprKind::Symbol(_) => true,
+            ExprKind::Integer(_) => true,
+            ExprKind::Fraction(_, _) => true,
+            ExprKind::Gaussian => true,
+            ExprKind::Boolean(_) => true,
             _ => false,
         }
     }
