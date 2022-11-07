@@ -3,6 +3,7 @@ use crate::expression::{Expr, ExprKind};
 use self::monomial::Monomial;
 
 mod monomial;
+mod expand;
 
 impl Expr {
     /// Takes an expression and returns all the monomials in it.

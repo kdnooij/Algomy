@@ -77,10 +77,32 @@ impl Expr {
         }
     }
 
+    pub fn product(operands: Vec<Expr>) -> Expr {
+        if operands.len() > 0 {
+            Expr {
+                kind: ExprKind::Product,
+                operands,
+            }
+        } else {
+            Expr::int(1)
+        }
+    }
+
     pub fn plus(lhs: Expr, rhs: Expr) -> Expr {
         Expr {
             kind: ExprKind::Sum,
             operands: vec![lhs, rhs],
+        }
+    }
+
+    pub fn sum(operands: Vec<Expr>) -> Expr {
+        if operands.len() >0 {
+            Expr {
+                kind: ExprKind::Sum,
+                operands,
+            }
+        } else {
+            Expr::int(0)
         }
     }
 

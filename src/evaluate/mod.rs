@@ -1,7 +1,10 @@
 use crate::expression::Expr;
 
 mod gaussian;
+mod function;
+
 pub use gaussian::*;
+pub use function::*;
 
 /// Evaluates v + w where `v` and `w` are integers or fractions
 pub fn evaluate_sum(v: &Expr, w: &Expr) -> Expr {

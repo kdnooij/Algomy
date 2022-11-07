@@ -1,23 +1,25 @@
-use crate::expression::{Expr, ExprKind};
+use crate::{
+    evaluate::evaluate_function,
+    expression::{Expr, ExprKind},
+};
 
-mod gaussian_number;
 mod difference;
 mod factorial;
+mod gaussian_number;
 mod power;
 mod product;
 mod quotient;
 mod rational_number;
 mod sum;
 
+use difference::simplify_difference;
+use factorial::simplify_factorial;
+use gaussian_number::simplify_gaussian_number;
 use power::simplify_power;
 use product::simplify_product;
+use quotient::simplify_quotient;
 use rational_number::simplify_rational_number;
 use sum::simplify_sum;
-
-use self::{
-    gaussian_number::simplify_gaussian_number, difference::simplify_difference,
-    factorial::simplify_factorial, quotient::simplify_quotient,
-};
 
 pub fn simplify(expr: &Expr) -> Expr {
     match &expr.kind {
@@ -33,7 +35,7 @@ pub fn simplify(expr: &Expr) -> Expr {
                 ExprKind::Quotient => simplify_quotient(&expr),
                 ExprKind::Difference => simplify_difference(&expr),
                 ExprKind::Factorial => simplify_factorial(&expr),
-                ExprKind::Func(_) => expr,
+                ExprKind::Func(_) => evaluate_function(&expr),
                 _ => unreachable!(),
             }
         }
