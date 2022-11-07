@@ -5,15 +5,18 @@ num = @{ int }
 int = @{ (ASCII_NONZERO_DIGIT ~ ASCII_DIGIT+ | ASCII_DIGIT) }
 
 
-infix = _{ add | sub | mul | div | pow }
+infix = _{ add | sub | mul | div | pow | and | or }
     add       = { "+" }
     sub       = { "-" }
     mul       = { "*" }
     div       = { "/" }
     pow       = { "^" }
+    and       = { "&&" }
+    or        = { "||" }
 
-prefix  =  _{ neg }
+prefix  =  _{ neg | not}
     neg       = { "-" }
+    not       = { "!" }
 postfix =  _{ fac }
     fac       = { "!" }
 

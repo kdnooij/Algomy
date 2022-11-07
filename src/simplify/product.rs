@@ -1,7 +1,7 @@
 use crate::expression::{Expr, ExprKind};
 
 use super::{
-    gaussian_number::simplify_grne, power::simplify_power, rational_number::simplify_rne,
+    gaussian_number::simplify_grne, power::simplify_power,
     sum::simplify_sum,
 };
 
@@ -74,10 +74,10 @@ fn simplify_product_recursive(l: &[Expr]) -> Vec<Expr> {
     } else if l.len() == 2 && (l[0].kind == ExprKind::Product || l[1].kind == ExprKind::Product) {
         let u1 = &l[0];
         let u2 = &l[1];
-        match [&u1.kind, &u2.kind] {
-            [ExprKind::Product, ExprKind::Product] => merge_products(&u1.operands, &u2.operands),
-            [ExprKind::Product, _] => merge_products(&u1.operands, &[u2.clone()]),
-            [_, ExprKind::Product] => merge_products(&[u1.clone()], &u2.operands),
+        match (&u1.kind, &u2.kind) {
+            (ExprKind::Product, ExprKind::Product) => merge_products(&u1.operands, &u2.operands),
+            (ExprKind::Product, _) => merge_products(&u1.operands, &[u2.clone()]),
+            (_, ExprKind::Product) => merge_products(&[u1.clone()], &u2.operands),
             _ => unreachable!(),
         }
     } else {

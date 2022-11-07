@@ -11,9 +11,10 @@ lazy_static! {
     static ref PRATT_PARSER: PrattParser<Rule> = {
         // Create a precedence climber where operations have the following precedence:
         // [+, -] < [*, /] < [^] < [!] < [(-)]
-        PrattParser::new().op(Op::infix(Rule::add, Assoc::Left) | Op::infix(Rule::sub, Assoc::Left))
-        .op(Op::infix(Rule::mul, Assoc::Left) | Op::infix(Rule::div, Assoc::Left))
+        PrattParser::new().op(Op::infix(Rule::add, Assoc::Left) | Op::infix(Rule::sub, Assoc::Left) | Op::infix(Rule::or, Assoc::Left))
+        .op(Op::infix(Rule::mul, Assoc::Left) | Op::infix(Rule::div, Assoc::Left) | Op::infix(Rule::and, Assoc::Left))
         .op(Op::infix(Rule::pow, Assoc::Right))
+        .op(Op::prefix(Rule::not))
         .op(Op::postfix(Rule::fac))
         .op(Op::prefix(Rule::neg))
     };
@@ -70,6 +71,10 @@ fn parse_expr(pairs: Pairs<Rule>, pratt: &PrattParser<Rule>) -> Expr {
                     rhs,
                 ],
             },
+            Rule::not => Expr {
+                kind: ExprKind::Not,
+                operands: vec![rhs],
+            },
             _ => unreachable!(),
         })
         .map_postfix(|lhs, op| match op.as_rule() {
@@ -98,6 +103,14 @@ fn parse_expr(pairs: Pairs<Rule>, pratt: &PrattParser<Rule>) -> Expr {
             },
             Rule::pow => Expr {
                 kind: ExprKind::Power,
+                operands: vec![lhs, rhs],
+            },
+            Rule::or => Expr {
+                kind: ExprKind::Or,
+                operands: vec![lhs, rhs],
+            },
+            Rule::and => Expr {
+                kind: ExprKind::And,
                 operands: vec![lhs, rhs],
             },
             _ => unreachable!(),
@@ -138,6 +151,8 @@ fn parse_symbol(pair: Pair<Rule>) -> Expr {
     let s = pair.as_str();
     match s {
         "I" => Expr::gaussian(Expr::int(0), Expr::int(1)),
+        "True" => Expr::bool(true),
+        "False" => Expr::bool(false),
         _ => Expr {
             kind: ExprKind::Symbol(s.to_owned()),
             operands: vec![],

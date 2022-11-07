@@ -1,7 +1,6 @@
 use crate::{
     expression::{Expr, ExprKind},
-    polynomial::{self, polynomial_quotient, polynomial_remainder},
-    simplify,
+    polynomial::{polynomial_quotient, polynomial_remainder},
 };
 
 pub fn evaluate_function(expr: &Expr) -> Expr {

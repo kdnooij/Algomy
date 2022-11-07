@@ -6,6 +6,7 @@ use crate::{
 mod difference;
 mod factorial;
 mod gaussian_number;
+mod logic;
 mod power;
 mod product;
 mod quotient;
@@ -21,9 +22,11 @@ use quotient::simplify_quotient;
 use rational_number::simplify_rational_number;
 use sum::simplify_sum;
 
+use self::logic::{simplify_not, simplify_or, simplify_and};
+
 pub fn simplify(expr: &Expr) -> Expr {
     match &expr.kind {
-        ExprKind::Integer(_) | ExprKind::Symbol(_) => expr.clone(),
+        ExprKind::Integer(_) | ExprKind::Symbol(_) | ExprKind::Boolean(_) => expr.clone(),
         ExprKind::Fraction(_, _) => simplify_rational_number(expr),
         ExprKind::Gaussian => simplify_gaussian_number(expr),
         kind => {
@@ -36,6 +39,10 @@ pub fn simplify(expr: &Expr) -> Expr {
                 ExprKind::Difference => simplify_difference(&expr),
                 ExprKind::Factorial => simplify_factorial(&expr),
                 ExprKind::Func(_) => evaluate_function(&expr),
+
+                ExprKind::Not => simplify_not(&expr),
+                ExprKind::Or => simplify_or(&expr),
+                ExprKind::And => simplify_and(&expr),
                 _ => unreachable!(),
             }
         }

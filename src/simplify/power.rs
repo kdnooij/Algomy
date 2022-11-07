@@ -1,6 +1,6 @@
 use crate::expression::{Expr, ExprKind};
 
-use super::{product::simplify_product, rational_number::simplify_rne, gaussian_number::simplify_grne};
+use super::{product::simplify_product, gaussian_number::simplify_grne};
 
 pub fn simplify_power(u: &Expr) -> Expr {
     let v = &u.operands[0];
