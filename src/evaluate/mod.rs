@@ -1,10 +1,10 @@
 use crate::expression::Expr;
 
-mod gaussian;
 mod function;
+mod gaussian;
 
-pub use gaussian::*;
 pub use function::*;
+pub use gaussian::*;
 
 /// Evaluates v + w where `v` and `w` are integers or fractions
 pub fn evaluate_sum(v: &Expr, w: &Expr) -> Expr {
@@ -24,7 +24,10 @@ pub fn evaluate_difference(v: &Expr, w: &Expr) -> Expr {
 
 /// Evaluates v * w where `v` and `w` are integers or fractions
 pub fn evaluate_product(v: &Expr, w: &Expr) -> Expr {
-    Expr::frac(v.numerator_rne() * w.numerator_rne(), v.denominator_rne() * w.denominator_rne())
+    Expr::frac(
+        v.numerator_rne() * w.numerator_rne(),
+        v.denominator_rne() * w.denominator_rne(),
+    )
 }
 
 /// Evaluates v/w where `v` and `w` are integers or fractions

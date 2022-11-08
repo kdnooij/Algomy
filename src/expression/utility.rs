@@ -1,5 +1,7 @@
 use std::iter::{Product, Sum};
 
+use crate::simplify;
+
 use super::{Expr, ExprKind};
 
 impl Expr {
@@ -23,6 +25,16 @@ impl Expr {
             true
         } else {
             u.operands.iter().all(|v| Expr::free_of_bool(v, t))
+        }
+    }
+
+    pub fn substitute(&self, t: &Expr, s: &Expr) -> Expr {
+        if self == t {
+            s.clone()
+        } else if self.is_atomic() {
+            self.clone()
+        } else {
+            simplify(&self.map(|v| v.substitute(t, s)))
         }
     }
 }
