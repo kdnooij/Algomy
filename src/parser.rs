@@ -15,6 +15,7 @@ pub struct Assignment {
 pub enum Line {
     Expr(Expr),
     Assignment(Assignment),
+    DelayedAssignment(Assignment),
     None,
 }
 
@@ -61,12 +62,18 @@ impl AlgomyKernel {
                         Rule::assignment => {
                             let mut pairs = pair.into_inner();
                             let var = parse_symbol(pairs.next().unwrap());
+                            let assign = pairs.next().unwrap();
                             let expr = pairs.next().unwrap();
                             let expr = parse_expr(expr.into_inner(), &self.pratt_parser);
-                            ast.push(Line::Assignment(Assignment {
-                                var: var,
-                                val: expr,
-                            }))
+                            match assign.as_rule() {
+                                Rule::assign => {
+                                    ast.push(Line::Assignment(Assignment { var, val: expr }))
+                                }
+                                Rule::delayed_assign => {
+                                    ast.push(Line::DelayedAssignment(Assignment { var, val: expr }))
+                                }
+                                _ => unreachable!(),
+                            }
                         }
                         Rule::EOI => ast.push(Line::None),
                         unknown => panic!("Unknown rule: {:?}", unknown),
@@ -93,9 +100,16 @@ impl AlgomyKernel {
             Rule::assignment => {
                 let mut pairs = line_pair.into_inner();
                 let var = parse_symbol(pairs.next().unwrap());
+                let assign = pairs.next().unwrap();
                 let expr = pairs.next().unwrap();
                 let expr = parse_expr(expr.into_inner(), &self.pratt_parser);
-                Ok(Line::Assignment(Assignment { var, val: expr }))
+                match assign.as_rule() {
+                    Rule::assign => Ok(Line::Assignment(Assignment { var, val: expr })),
+                    Rule::delayed_assign => {
+                        Ok(Line::DelayedAssignment(Assignment { var, val: expr }))
+                    }
+                    _ => unreachable!(),
+                }
             }
             Rule::EOI => Ok(Line::None),
             unknown => panic!("Unknown rule: {:?}", unknown),

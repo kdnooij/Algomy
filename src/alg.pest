@@ -21,7 +21,8 @@ prefix  =  _{ neg | not}
 postfix =  _{ fac }
     fac       = { "!" }
 
-assign = _{ ":=" }
+assign = { "=" }
+delayed_assign = { ":=" }
 
 expr       = { prefix* ~ primary ~ postfix* ~ (infix ~ prefix* ~ primary ~ postfix* )* }
 func       = { func_name ~ "[" ~ (expr ~ ( "," ~ expr )*)? ~ "]" }
@@ -31,7 +32,7 @@ set        = { "{" ~ (expr ~ ( "," ~ expr )*)? ~ "}" }
 
 primary    = _{ func | symbol | num | set | "(" ~ expr ~ ")" }
 
-assignment  = { symbol ~ assign ~ expr }
+assignment  = { symbol ~ (assign | delayed_assign) ~ expr }
 
 line = { assignment | expr }
 

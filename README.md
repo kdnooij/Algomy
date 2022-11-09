@@ -34,13 +34,13 @@ In addition, a number of operations on single-variable polynomials are supported
 
 ### Assignments
 
-An expression can be assigned to a symbol (`symbol := expr`), such that it is substituted in all subsequent expressions.
+An expression can be assigned to a symbol (`symbol = expr`), such that it is substituted in all subsequent expressions. The expression on the right-hand side is evaluated and simplified before assigning. To prevent this, use a delayed assignment (`symbol := expr`).
 Example:
 ```nb
-> x := 5
+> x = 5
 > x
 5
-> x := 3
+> x = 3
 > x + 10
 13
 ```

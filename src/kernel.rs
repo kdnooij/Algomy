@@ -1,4 +1,8 @@
-use crate::{parser::{AlgomyKernel, Line, Assignment}, expression::Expr, simplify};
+use crate::{
+    expression::Expr,
+    parser::{AlgomyKernel, Assignment, Line},
+    simplify,
+};
 
 impl AlgomyKernel {
     pub fn evaluate_line(&mut self, line: Line) -> Option<Expr> {
@@ -9,7 +13,14 @@ impl AlgomyKernel {
                 }
                 Some(simplify(&expr))
             }
-            Line::Assignment(Assignment { var, val }) => {
+            Line::Assignment(Assignment { var, mut val }) => {
+                for Assignment { var: a_var, val: a_val } in self.assignments.iter() {
+                    val = val.substitute(a_var, a_val);
+                }
+                self.add_assignment(var, simplify(&val));
+                None
+            }
+            Line::DelayedAssignment(Assignment { var, val }) => {
                 self.add_assignment(var, val);
                 None
             }
