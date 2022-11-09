@@ -27,8 +27,8 @@ Algomy currently supports the following mathematical objects and operations:
 | Rational | `4/3`, `-2/5` | See above |
 | Gaussian rational | `I`, `3 + 2/3*I` | See above |
 | Symbol | `x`, `S` |  |
-| Predicates | `True`, `False` | `Not[predicate]` ($\neg p$), `And[p1, p2, ...]` ($p\land q$), `Or[p1, p2, ...]` ($p\lor q$)|
-| Finite set | `{}`, `{1, 2, 3}`, `{x, y}` | `Union[set1, set2]` ($A\cup B$), `Intersection[set1, set2]` ($A\cap B$), `Difference[set1, set2]` ($A\setminus B$), `Member[element, set]` ($x \in S$) |
+| Predicates | `True`, `False` | `Not[predicate]` ( $\neg p$ ), `And[p1, p2, ...]` ( $p\land q$ ), `Or[p1, p2, ...]` ( $p\lor q$ )|
+| Finite set | `{}`, `{1, 2, 3}`, `{x, y}` | `Union[set1, set2]` ( $A\cup B$ ), `Intersection[set1, set2]` ( $A\cap B$ ), `Difference[set1, set2]` ( $A\setminus B$ ), `Member[element, set]` ( $x \in S$ ) |
 
 In addition, a number of operations on single-variable polynomials are supported.
 
