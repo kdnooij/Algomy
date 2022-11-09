@@ -25,7 +25,7 @@ use sum::simplify_sum;
 
 use self::{
     logic::{simplify_and, simplify_not, simplify_or},
-    set::{simplify_intersection, simplify_set, simplify_union, simplify_member},
+    set::{simplify_intersection, simplify_set, simplify_union, simplify_member, simplify_set_difference},
 };
 
 pub fn simplify(expr: &Expr) -> Expr {
@@ -51,7 +51,7 @@ pub fn simplify(expr: &Expr) -> Expr {
                 ExprKind::Set => simplify_set(&expr),
                 ExprKind::Union => simplify_union(&expr),
                 ExprKind::Intersection => simplify_intersection(&expr),
-                ExprKind::SetDifference => simplify_difference(&expr),
+                ExprKind::SetDifference => simplify_set_difference(&expr),
                 ExprKind::Member => simplify_member(&expr),
                 _ => unreachable!(),
             }

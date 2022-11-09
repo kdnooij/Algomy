@@ -167,6 +167,10 @@ fn parse_expr(pairs: Pairs<Rule>, pratt: &PrattParser<Rule>) -> Expr {
                 kind: ExprKind::And,
                 operands: vec![lhs, rhs],
             },
+            Rule::setdiff => Expr {
+                kind: ExprKind::SetDifference,
+                operands: vec![lhs, rhs],
+            },
             _ => unreachable!(),
         })
         .parse(pairs)
@@ -207,7 +211,7 @@ fn parse_func(mut pairs: Pairs<Rule>, pratt: &PrattParser<Rule>) -> Expr {
             operands,
         },
         "Difference" => Expr {
-            kind: ExprKind::Difference,
+            kind: ExprKind::SetDifference,
             operands,
         },
         "Member" => Expr {
