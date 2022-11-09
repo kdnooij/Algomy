@@ -6,10 +6,13 @@ use crate::{
 use self::monomial::Monomial;
 
 mod division;
-mod expand;
+mod expansion;
 mod monomial;
+mod gcd;
 
 pub use division::*;
+pub use expansion::*;
+pub use gcd::*;
 
 impl Expr {
     /// Takes an expression and returns all the monomials in it.

@@ -58,7 +58,7 @@ The following functions are supported:
 | `Coefficient[expr, var, exp]` | Computes the sum of the coefficients of all monomials with a variable part of the form `var^exp` |
 | `PolynomialQuotient[expr1, expr2, var]` | Computes the quotient of the division of two single-variable polynomials in `var` |
 | `PolynomialRemainder[expr1, expr2, var]` | Computes the remainder of the division of two single-variable polynomials in `var` |
-| `Variables` | Returns a set containing the variables present in a multi-variable polynomial  |
+| `Variables[expr]` | Returns a set containing the variables present in a multi-variable polynomial  |
 | `FreeOf[expr1, expr2]` | Checks whether `expr2` is equal to a sub-expression of `expr1` |
 | `Substitute[expr1, expr2, expr3]` | Substitutes every subexpression in `expr1` equaling `expr2` with `expr3` |
 

@@ -53,7 +53,7 @@ pub fn simplify(expr: &Expr) -> Expr {
                 ExprKind::Intersection => simplify_intersection(&expr),
                 ExprKind::SetDifference => simplify_set_difference(&expr),
                 ExprKind::Member => simplify_member(&expr),
-                _ => unreachable!(),
+                unknown => unreachable!("Reached unknown kind: {:?}", unknown),
             }
         }
     }

@@ -1,6 +1,6 @@
 use crate::{
     expression::{Expr, ExprKind},
-    polynomial::{polynomial_quotient, polynomial_remainder},
+    polynomial::{polynomial_expansion, polynomial_quotient, polynomial_remainder, polynomial_gcd},
 };
 
 pub fn evaluate_function(expr: &Expr) -> Expr {
@@ -46,6 +46,13 @@ fn evaluate_function_by_name(name: &str, expr: &Expr) -> Expr {
         ("Variables", 1) => expr.operands[0].variables(),
         ("FreeOf", 2) => expr.operands[0].free_of(&expr.operands[1]),
         ("Substitute", 3) => expr.operands[0].substitute(&expr.operands[1], &expr.operands[2]),
+        ("PolynomialExpansion", 4) => polynomial_expansion(
+            &expr.operands[0],
+            &expr.operands[1],
+            &expr.operands[2],
+            &expr.operands[3],
+        ),
+        ("PolynomialGCD", 3) => polynomial_gcd(&expr.operands[0], &expr.operands[1], &expr.operands[2]),
         _ => expr.clone(),
     }
 }

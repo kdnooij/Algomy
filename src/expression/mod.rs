@@ -3,6 +3,7 @@ mod numeric;
 mod polynomial;
 mod order;
 mod utility;
+mod expand;
 
 pub use numeric::*;
 pub use polynomial::*;
