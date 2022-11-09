@@ -83,42 +83,30 @@ fn expand_power(u: &Expr, n: i64) -> Expr {
 
 #[cfg(test)]
 mod tests {
-    use crate::{parser::parse, simplify::simplify};
+    use crate::{parser::AlgomyKernel, simplify::simplify};
 
     #[test]
     pub fn test_algebraic_expand() {
-        let expr = simplify(&parse("(x+2)*(x+3)*(x+4)").unwrap()[0]);
+        let mut kernel = AlgomyKernel::new();
+        let expr = kernel.parse_eval_line("(x+2)*(x+3)*(x+4)");
         assert_eq!(
             expr.algebraic_expand(),
-            simplify(&parse("x^3+9*x^2+26*x+24").unwrap()[0])
+            kernel.parse_eval_line("x^3+9*x^2+26*x+24")
         );
 
-        let expr = simplify(&parse("(x+1)^2").unwrap()[0]);
+        let expr = kernel.parse_eval_line("(x+1)^2");
+        assert_eq!(expr.algebraic_expand(), kernel.parse_eval_line("1+2*x+x^2"));
+
+        let expr = kernel.parse_eval_line("(x+2)^5*(x+3)^3*(x+4)^2");
         assert_eq!(
             expr.algebraic_expand(),
-            simplify(&parse("1+2*x+x^2").unwrap()[0])
+            kernel.parse_eval_line("13824 + 55296*x + 98784*x^2 + 103760*x^3 + 70944*x^4 + 32984*x^5 + 10558*x^6 + 2297*x^7 + 325*x^8 + 27*x^9 + x^10")
         );
 
-        let expr = simplify(&parse("(x+2)^5*(x+3)^3*(x+4)^2").unwrap()[0]);
+        let expr = kernel.parse_eval_line("(x*(y+1)^3+1)*(x*(y+1)^2+1)");
         assert_eq!(
             expr.algebraic_expand(),
-            simplify(
-                &parse(
-                    "13824 + 55296*x + 98784*x^2 + 103760*x^3 + 70944*x^4 + 32984*x^5 + 10558*x^6 + 2297*x^7 + 325*x^8 + 27*x^9 + x^10"
-                )
-                .unwrap()[0]
-            )
-        );
-
-        let expr = simplify(&parse("(x*(y+1)^3+1)*(x*(y+1)^2+1)").unwrap()[0]);
-        assert_eq!(
-            expr.algebraic_expand(),
-            simplify(
-                &parse(
-                    "1 + 2*x + x^2 + 5*x*y + 5*x^2*y + 4*x*y^2 + 10*x^2*y^2 + x*y^3 + 10*x^2*y^3 + 5*x^2*y^4 + x^2*y^5"
-                )
-                .unwrap()[0]
-            )
+            kernel.parse_eval_line("1 + 2*x + x^2 + 5*x*y + 5*x^2*y + 4*x*y^2 + 10*x^2*y^2 + x*y^3 + 10*x^2*y^3 + 5*x^2*y^4 + x^2*y^5")
         );
     }
 }

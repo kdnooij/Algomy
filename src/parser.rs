@@ -1,53 +1,106 @@
 use crate::expression::{Expr, ExprKind};
 use crate::pest::Parser;
-use lazy_static::lazy_static;
 use pest::iterators::Pair;
 use pest::{
     iterators::Pairs,
     pratt_parser::{Assoc, Op, PrattParser},
 };
 
-lazy_static! {
-    static ref PRATT_PARSER: PrattParser<Rule> = {
-        // Create a precedence climber where operations have the following precedence:
-        // [+, -] < [*, /] < [^] < [!] < [(-)]
-        PrattParser::new().op(Op::infix(Rule::add, Assoc::Left) | Op::infix(Rule::sub, Assoc::Left) | Op::infix(Rule::or, Assoc::Left))
-        .op(Op::infix(Rule::mul, Assoc::Left) | Op::infix(Rule::div, Assoc::Left) | Op::infix(Rule::and, Assoc::Left))
-        .op(Op::infix(Rule::pow, Assoc::Right) | Op::infix(Rule::setdiff, Assoc::Right))
-        .op(Op::prefix(Rule::not))
-        .op(Op::postfix(Rule::fac))
-        .op(Op::prefix(Rule::neg))
-    };
+#[derive(Clone, PartialEq, Eq)]
+pub struct Assignment {
+    pub var: Expr,
+    pub val: Expr,
+}
+
+pub enum Line {
+    Expr(Expr),
+    Assignment(Assignment),
+    None,
 }
 
 #[derive(Parser)]
 #[grammar = "alg.pest"]
-pub struct AlgParser;
+pub struct AlgomyKernel {
+    pratt_parser: PrattParser<Rule>,
+    pub assignments: Vec<Assignment>,
+}
 
-/// Parse a string into an expression.
-pub fn parse(source: &str) -> Result<Vec<Expr>, pest::error::Error<Rule>> {
-    let mut ast = vec![];
-    let pairs = AlgParser::parse(Rule::program, source)?;
-    for pair in pairs {
-        match pair.as_rule() {
-            Rule::line => {
-                let mut line_pairs = pair.into_inner();
-                let pair = line_pairs.next().unwrap();
-
-                match pair.as_rule() {
-                    Rule::expr => {
-                        let line = parse_expr(pair.into_inner(), &PRATT_PARSER);
-                        ast.push(line);
-                    }
-                    Rule::EOI => (),
-                    unknown => panic!("Unknown rule: {:?}", unknown),
-                }
-            }
-            Rule::EOI => {}
-            _ => unreachable!(),
+impl AlgomyKernel {
+    pub fn new() -> Self {
+        Self {
+            pratt_parser: PrattParser::new()
+                .op(Op::infix(Rule::add, Assoc::Left)
+                    | Op::infix(Rule::sub, Assoc::Left)
+                    | Op::infix(Rule::or, Assoc::Left))
+                .op(Op::infix(Rule::mul, Assoc::Left)
+                    | Op::infix(Rule::div, Assoc::Left)
+                    | Op::infix(Rule::and, Assoc::Left))
+                .op(Op::infix(Rule::pow, Assoc::Right) | Op::infix(Rule::setdiff, Assoc::Right))
+                .op(Op::prefix(Rule::not))
+                .op(Op::postfix(Rule::fac))
+                .op(Op::prefix(Rule::neg)),
+            assignments: Vec::new(),
         }
     }
-    return Ok(ast);
+
+    /// Parse a program into a Vec of lines represented as Expr.
+    pub fn parse_program(&mut self, source: &str) -> Result<Vec<Line>, pest::error::Error<Rule>> {
+        let mut ast = vec![];
+        let pairs = AlgomyKernel::parse(Rule::program, source)?;
+        for pair in pairs {
+            match pair.as_rule() {
+                Rule::line => {
+                    let mut line_pairs = pair.into_inner();
+                    let pair = line_pairs.next().unwrap();
+
+                    match pair.as_rule() {
+                        Rule::expr => {
+                            let line = parse_expr(pair.into_inner(), &self.pratt_parser);
+                            ast.push(Line::Expr(line))
+                        }
+                        Rule::assignment => {
+                            let mut pairs = pair.into_inner();
+                            let var = parse_symbol(pairs.next().unwrap());
+                            let expr = pairs.next().unwrap();
+                            let expr = parse_expr(expr.into_inner(), &self.pratt_parser);
+                            ast.push(Line::Assignment(Assignment {
+                                var: var,
+                                val: expr,
+                            }))
+                        }
+                        Rule::EOI => ast.push(Line::None),
+                        unknown => panic!("Unknown rule: {:?}", unknown),
+                    }
+                }
+                Rule::EOI => {}
+                _ => unreachable!(),
+            }
+        }
+        return Ok(ast);
+    }
+
+    /// Parse a program into a Vec of lines represented as Expr.
+    pub fn parse_line(&mut self, source: &str) -> Result<Line, pest::error::Error<Rule>> {
+        let mut line_pairs = AlgomyKernel::parse(Rule::line, source)?;
+        let pair = line_pairs.next().unwrap();
+
+        let line_pair = pair.into_inner().next().unwrap();
+        match line_pair.as_rule() {
+            Rule::expr => {
+                let line = parse_expr(line_pair.into_inner(), &self.pratt_parser);
+                Ok(Line::Expr(line))
+            }
+            Rule::assignment => {
+                let mut pairs = line_pair.into_inner();
+                let var = parse_symbol(pairs.next().unwrap());
+                let expr = pairs.next().unwrap();
+                let expr = parse_expr(expr.into_inner(), &self.pratt_parser);
+                Ok(Line::Assignment(Assignment { var, val: expr }))
+            }
+            Rule::EOI => Ok(Line::None),
+            unknown => panic!("Unknown rule: {:?}", unknown),
+        }
+    }
 }
 
 fn parse_expr(pairs: Pairs<Rule>, pratt: &PrattParser<Rule>) -> Expr {

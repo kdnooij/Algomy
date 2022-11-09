@@ -61,11 +61,12 @@ impl Expr {
 
 #[cfg(test)]
 mod tests {
-    use crate::{expression::Expr, parser::parse, polynomial::Monomial, simplify::simplify};
+    use crate::{expression::Expr, parser::AlgomyKernel, polynomial::Monomial};
 
     #[test]
     fn test_is_gme() {
-        let expr = simplify(&parse("x^2*y^2*z^5").unwrap()[0]);
+        let mut kernel = AlgomyKernel::new();
+        let expr = kernel.parse_eval_line("x^2*y^2*z^5");
         assert_eq!(
             expr.as_gpe(),
             vec![Monomial {
@@ -78,7 +79,7 @@ mod tests {
             }]
         );
 
-        let expr = simplify(&parse("x^2+y^3*z^2").unwrap()[0]);
+        let expr = kernel.parse_eval_line("x^2+y^3*z^2");
         assert_eq!(
             expr.as_gpe(),
             vec![
@@ -93,7 +94,7 @@ mod tests {
             ]
         );
 
-        let expr = simplify(&parse("(1/3)*x^1+3*y^3+(x+1)").unwrap()[0]);
+        let expr = kernel.parse_eval_line("(1/3)*x^1+3*y^3+(x+1)");
         assert_eq!(
             expr.as_gpe(),
             vec![
@@ -114,16 +115,17 @@ mod tests {
 
     #[test]
     fn test_degree_gpe() {
-        let expr = simplify(&parse("(1/3)*x^1+3*y^3+(x+1)").unwrap()[0]);
+        let mut kernel = AlgomyKernel::new();
+        let expr = kernel.parse_eval_line("(1/3)*x^1+3*y^3+(x+1)");
         assert_eq!(expr.degree_gpe(&Expr::symbol("y")), 3);
 
-        let expr = simplify(&parse("x^2*y^2*z^5").unwrap()[0]);
+        let expr = kernel.parse_eval_line("x^2*y^2*z^5");
         assert_eq!(expr.degree_gpe(&Expr::symbol("z")), 5);
 
-        let expr = simplify(&parse("x^2*y^2*z^5 + 5").unwrap()[0]);
+        let expr = kernel.parse_eval_line("x^2*y^2*z^5 + 5");
         assert_eq!(expr.degree_gpe(&Expr::int(1)), 1);
 
-        let expr = simplify(&parse("x^2*y^2*z^5 + 5").unwrap()[0]);
+        let expr = kernel.parse_eval_line("x^2*y^2*z^5 + 5");
         assert_eq!(expr.degree_gpe(&Expr::symbol("a")), 0);
     }
 }

@@ -21,7 +21,7 @@ prefix  =  _{ neg | not}
 postfix =  _{ fac }
     fac       = { "!" }
 
-assignment = _{ ":=" }
+assign = _{ ":=" }
 
 expr       = { prefix* ~ primary ~ postfix* ~ (infix ~ prefix* ~ primary ~ postfix* )* }
 func       = { func_name ~ "[" ~ (expr ~ ( "," ~ expr )*)? ~ "]" }
@@ -31,9 +31,9 @@ set        = { "{" ~ (expr ~ ( "," ~ expr )*)? ~ "}" }
 
 primary    = _{ func | symbol | num | set | "(" ~ expr ~ ")" }
 
-statement  = { symbol ~ assignment ~ expr }
+assignment  = { symbol ~ assign ~ expr }
 
-line = { statement | expr }
+line = { assignment | expr }
 
 program = _{ SOI ~ (line ~ NEWLINE )* ~ line? ~ EOI }
 
